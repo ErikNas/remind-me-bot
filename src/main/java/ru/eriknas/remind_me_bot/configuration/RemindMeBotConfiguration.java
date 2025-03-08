@@ -3,10 +3,12 @@ package ru.eriknas.remind_me_bot.configuration;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.TelegramBotsLongPollingApplication;
 import org.telegram.telegrambots.longpolling.util.DefaultGetUpdatesGenerator;
 import org.telegram.telegrambots.meta.TelegramUrl;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
+import org.telegram.telegrambots.meta.generics.TelegramClient;
 import ru.eriknas.remind_me_bot.bot.RemindMeBot;
 
 import java.util.List;
@@ -29,5 +31,10 @@ public class RemindMeBotConfiguration {
                 remindMeBot);
 
         return botsApplication;
+    }
+
+    @Bean
+    public TelegramClient telegramClient(@Value("${bot.token}") String botToken) {
+        return new OkHttpTelegramClient(botToken);
     }
 }

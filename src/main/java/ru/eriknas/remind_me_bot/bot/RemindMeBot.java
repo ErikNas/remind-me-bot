@@ -3,9 +3,13 @@ package ru.eriknas.remind_me_bot.bot;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.objects.Update;
+import ru.eriknas.remind_me_bot.logic.Commands;
+
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class RemindMeBot implements LongPollingSingleThreadUpdateConsumer {
@@ -16,10 +20,20 @@ public class RemindMeBot implements LongPollingSingleThreadUpdateConsumer {
     private static final String HELP = "/help";
 
     @Autowired
-    MyClient client;
+    Commands commands;
 
     @Override
     public void consume(Update update) {
+
+        // Если тэгнули человека, то записать в историю с напоминанием
+        // Если это ответ от тэгнутого - снять напоминание
+        // Если это реакция от тэгнутого - снять напоминание
+        // Если это сообщение от тэгнутого сразу после тэгирования - снять напоминание
+
+        // Записать update в историю
+
+        // Сохранить в историю
+        // Проверить, если это команда, то выполнить
         if (update.hasMessage() && update.getMessage().hasText()) {
             System.out.println(update.getMessage().getText());
         }
@@ -28,44 +42,18 @@ public class RemindMeBot implements LongPollingSingleThreadUpdateConsumer {
         switch (message) {
             case START -> {
                 String userName = update.getMessage().getChat().getUserName();
-                startCommand(chatId, userName);
+                commands.startCommand(chatId, userName);
             }
-            case HELP -> helpCommand(chatId);
-            default -> unknownCommand(chatId);
+            case HELP -> commands.helpCommand(chatId);
+            default -> commands.unknownCommand(chatId);
         }
-
     }
 
-    private void startCommand(Long chatId, String userName) {
-        var text = """
-                Добро пожаловать в бот, %s!
+    @Scheduled(fixedRate = 1, timeUnit = TimeUnit.MINUTES)
+    public void remind() {
+        // Удалить все старые напоминания из чата
 
-                Бот помогает напомнить про сообщение, которые остались в чате без ответа
-                от пользователя, которому они были адресованы.
-
-                Дополнительные команды:
-                /help - получение справки
-                """;
-        var formattedText = String.format(text, userName);
-        sendMessage(chatId, formattedText);
-    }
-
-    private void helpCommand(Long chatId) {
-        var text = """
-                Справочная информация по боту
-
-                В процессе наполнения...
-                """;
-        sendMessage(chatId, text);
-    }
-
-    private void unknownCommand(Long chatId) {
-        var text = "Не удалось распознать команду!";
-        sendMessage(chatId, text);
-    }
-
-    private void sendMessage(Long chatId, String text) {
-        var chatIdStr = String.valueOf(chatId);
-        client.sendMessage(chatIdStr, text);
+        // Добавить новые напоминания
+        System.out.println("Work!");
     }
 }
